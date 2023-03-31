@@ -1,9 +1,23 @@
 #!/bin/bash
 
+RESET_HOUR=14
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
+
+
+connect() {
+	if [ ! -f "IPs.txt" ]; then
+		echo -e "${RED}File IPs.txt doesn't exist"
+		echo -e "${RED}Please create a IPs.txt file with the list of IPs to try to connect to"
+		exit 1
+	fi
+
+	while IFS= read -r ip; do
+		adb connect $ip:5555
+	done < IPs.txt
+}
 
 
 disconnected() {
@@ -45,8 +59,7 @@ get_processes() {
 
 clear_packages() {
 	for package in $(adb -s $1 shell pm list packages | cut -d: -f2); do
-		local res=$(adb shell pm clear $package)
-		echo "$package returned result $res"
+		local res=$(adb -s $1 shell pm clear $package)
 	done
 }
 
@@ -55,6 +68,12 @@ check_apps() {
 	local filename="packages.txt"
 	local filename2="new_packages.txt"
 
+	if [ ! -f "$filename" ]; then
+		echo -e "${RED}File $filename doesn't exist"
+		echo -e "${RED}Please create a $filename file with the list of Android TV apps"
+		exit 1
+	fi
+
 	adb -s $1 shell pm list packages | cut -d: -f2 > $filename2
 
 	_check_apps() {
@@ -62,12 +81,12 @@ check_apps() {
 		while IFS= read -r package; do
 			# Loop through each line in the file
 			while IFS= read -r line; do
-			# Check if the package name matches the line in the file
-			local found=false
-			if [[ "$line" == "$package" ]]; then
-				found=true
-				break
-			fi
+				# Check if the package name matches the line in the file
+				local found=false
+				if [[ "$line" == "$package" ]]; then
+					found=true
+					break
+				fi
 			done < "$1"
 			
 			if ! $found; then
@@ -83,7 +102,11 @@ check_apps() {
 }
 
 
+do_reset=true
 while true; do
+	connect
+
+	hour=$( date +"%H" )
 	local_time=$( date +"%Y:%m:%d-%H:%M:%S" )
 	log_time_string="[ $local_time ]"
 
@@ -95,8 +118,15 @@ while true; do
 		app_errors=$(check_apps $ip)
 	done
 
-	break
-	sleep 5
-done
+	if [ -z "$dc_erros" ] || [ -z "$process_errors" ] || [ -z "$app_errors" ]; then
+		echo -e "$dc_erros\n$process_errors\n$app_errors"
+	fi
 
-echo -e "$dc_erros\n$process_errors\n$app_errors"
+	# reset everything at RESET_HOUR
+	if [ $do_reset ] && [ "$hour" -eq "$RESET_HOUR" ] ; then
+		do_reset=false
+		clear_packages $ip
+	elif [ ! $do_reset ] && [ "$hour" -gt "$RESET_HOUR" ] ; then
+		do_reset=true
+	fi
+done
