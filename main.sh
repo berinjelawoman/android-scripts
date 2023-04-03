@@ -37,7 +37,7 @@ get_processes() {
 	local count=$(echo "$processes" | wc -l)
 
 	sleep 2
-	local processes2=$(adb shell ps -A | grep -E "^shell")
+	local processes2=$(adb -s $1 shell ps -A | grep -E "^shell")
 	echo "$processes2" > "processes2.txt"
 	local count2=$(echo "$processes2" | wc -l)
 
