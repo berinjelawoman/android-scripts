@@ -59,7 +59,9 @@ get_processes() {
 
 clear_packages() {
 	for package in $(adb -s $1 shell pm list packages | cut -d: -f2); do
-		local res=$(adb -s $1 shell pm clear $package)
+		if [[ "$package" != *"settings"* ]]; then
+			local res=$(adb -s $1 shell pm clear $package)
+		fi
 	done
 	adb -s $1 shell reboot
 }
@@ -125,12 +127,14 @@ while true; do
 
 	# reset everything at RESET_HOUR
 	if [ $do_reset ] && [ "$hour" -eq "$RESET_HOUR" ] ; then
+		echo "[ $local_time ] Reseting"
 		do_reset=false
 		for ip in ${ip_array[@]}; do
 			clear_packages $ip
 		done
 		sleep 60
 	elif [ ! $do_reset ] && [ "$hour" -gt "$RESET_HOUR" ] ; then
+		echo "[ $local_time ] Set do reset as true"
 		do_reset=true
 	fi
 done
