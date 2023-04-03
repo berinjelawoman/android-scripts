@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RESET_HOUR=14
+RESET_HOUR=16
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
 RED='\033[0;31m'
@@ -126,14 +126,15 @@ while true; do
 	fi
 
 	# reset everything at RESET_HOUR
-	if [ $do_reset ] && [ "$hour" -eq "$RESET_HOUR" ] ; then
+	echo "Do reset: $do_reset"
+	if $do_reset && [ "$hour" -eq "$RESET_HOUR" ] ; then
 		echo "[ $local_time ] Reseting"
 		do_reset=false
 		for ip in ${ip_array[@]}; do
 			clear_packages $ip
 		done
 		sleep 60
-	elif [ ! $do_reset ] && [ "$hour" -gt "$RESET_HOUR" ] ; then
+	elif ! $do_reset && [ "$hour" -gt "$RESET_HOUR" ] ; then
 		echo "[ $local_time ] Set do reset as true"
 		do_reset=true
 	fi
