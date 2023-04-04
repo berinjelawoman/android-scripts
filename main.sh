@@ -20,6 +20,7 @@ fi
 
 source env.sh
 
+echo -e "${GREEN}Loaded with RESET_HOUR=$RESET_HOUR and SEND_TO_IP=$SEND_TO_IP"
 
 connect() {
 	if [ ! -f "$SCRIPT_DIR/IPs.txt" ]; then
@@ -30,7 +31,7 @@ connect() {
 
 	while IFS= read -r ip; do
 		adb connect $ip:5555
-	done < IPs.txt
+	done < "$SCRIPT_DIR/IPs.txt"
 }
 
 
