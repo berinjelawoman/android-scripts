@@ -1,10 +1,21 @@
 #!/bin/bash
 
-RESET_HOUR=16
+
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
+
+if [ ! -f "env.sh" ]; then
+	echo -e "${RED}File env.sh doesn't exist"
+	echo -e "${RED}Please create a env.sh file with the following variables"
+	echo -e "${RED}RESET_HOUR: hour to reset the android system"
+	echo -e "${RED}SEND_TO_IP: IP to send errors to"
+	exit 1
+fi
+
+
+source env.sh
 
 
 connect() {
@@ -25,7 +36,7 @@ disconnected() {
 
     while IFS= read -r line; do
 		if ! [[ " ${ip_array[*]} " == *" $line "* ]]; then
-			echo -e "$log_time_string disconnected: $line"
+			echo -e "$line"
 		fi
 	done < IPs.txt
 }
@@ -52,7 +63,7 @@ get_processes() {
 	fi
 
 	if [[ $res == 0 ]]; then
-		echo -e "$log_time_string get_processes: $res"
+		echo -e "\"get_processes\": \"$res\""
 	fi
 }
 
@@ -74,6 +85,7 @@ check_apps() {
 	if [ ! -f "$filename" ]; then
 		echo -e "${RED}File $filename doesn't exist"
 		echo -e "${RED}Please create a $filename file with the list of Android TV apps"
+		echo -e "${RED}You can create one by running \"adb -s ip shell pm list packages | cut -d: -f2 > $filename\""
 		exit 1
 	fi
 
@@ -93,7 +105,7 @@ check_apps() {
 			done < "$1"
 			
 			if ! $found; then
-				echo -e "$log_time_string check_apps: $package"
+				echo -e "\"check_apps\": \"$package\""
 			fi
 		done < $2
 	}
@@ -111,18 +123,32 @@ while true; do
 
 	hour=$( date +"%H" )
 	local_time=$( date +"%Y:%m:%d-%H:%M:%S" )
-	log_time_string="[ $local_time ]"
+	log_time_string="$local_time"
 
 	ip_array=( $(adb devices | grep -Eo "([0-9]{1,3}\.){3}[0-9]{1,3}") )
 
-	dc_erros=$(disconnected)
+	dc_errors=$(disconnected)
 	for ip in ${ip_array[@]}; do
 		process_errors=$(get_processes $ip)
 		app_errors=$(check_apps $ip)
 	done
 
-	if [ -z "$dc_erros" ] || [ -z "$process_errors" ] || [ -z "$app_errors" ]; then
-		echo -e "$dc_erros\n$process_errors\n$app_errors"
+	if [ -n "$dc_errors" ] || [ -n "$process_errors" ] || [ -n "$app_errors" ]; then
+		dc_errors=$(echo "${dc_errors//[^a-zA-Z0-9\.\:]/,}") # remove some weird whitespace leftover from echo
+		json=$( 
+			printf '%s' \
+					"{\"content\" : " \
+						"{ \"$log_time_string\": " \
+							"{ \"dc_errors\":\"$dc_errors\", " \
+						    "  \"process_errors\":\"$process_errors\", " \
+							"  \"app_errors\":\"$app_errors\" }}}"
+		 )
+
+		echo $json
+		curl --header "Content-Type: application/json" \
+			--request POST \
+			--data "$json" \
+			$SEND_TO_IP
 	fi
 
 	# reset everything at RESET_HOUR
