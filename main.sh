@@ -13,7 +13,7 @@ if [ ! -f "$SCRIPT_DIR/env.sh" ]; then
 	echo -e "${RED}File env.sh doesn't exist"
 	echo -e "${RED}Please create a env.sh file with the following variables"
 	echo -e "${RED}RESET_HOUR: hour to reset the android system"
-	echo -e "${RED}SEND_TO_IP: IP to send errors to"
+	echo -e "${RED}SEND_TO_IP: IP to send errors to${NOCOLOR}"
 	exit 1
 fi
 
@@ -25,7 +25,7 @@ echo -e "${GREEN}Loaded with RESET_HOUR=$RESET_HOUR and SEND_TO_IP=$SEND_TO_IP${
 connect() {
 	if [ ! -f "$SCRIPT_DIR/IPs.txt" ]; then
 		echo -e "${RED}File IPs.txt doesn't exist"
-		echo -e "${RED}Please create a IPs.txt file with the list of IPs to try to connect to"
+		echo -e "${RED}Please create a IPs.txt file with the list of IPs to try to connect to${NOCOLOR}"
 		exit 1
 	fi
 
@@ -89,7 +89,7 @@ check_apps() {
 	if [ ! -f "$filename" ]; then
 		echo -e "${RED}File $filename doesn't exist"
 		echo -e "${RED}Please create a $filename file with the list of Android TV apps"
-		echo -e "${RED}You can create one by running \"adb -s ip shell pm list packages | cut -d: -f2 > $filename\""
+		echo -e "${RED}You can create one by running \"adb -s ip shell pm list packages | cut -d: -f2 > $filename\"${NOCOLOR}"
 		exit 1
 	fi
 
