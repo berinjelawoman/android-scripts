@@ -105,7 +105,7 @@ check_apps() {
 			done < "$1"
 			
 			if ! $found; then
-				echo -e "\"check_apps\": \"$package\""
+				echo -e "$package"
 			fi
 		done < $2
 	}
@@ -135,6 +135,8 @@ while true; do
 
 	if [ -n "$dc_errors" ] || [ -n "$process_errors" ] || [ -n "$app_errors" ]; then
 		dc_errors=$(echo "${dc_errors//[^a-zA-Z0-9\.\:]/,}") # remove some weird whitespace leftover from echo
+		process_errors=$(echo "${process_errors//[^a-zA-Z0-9\.\:]/,}")
+		app_errors=$(echo "${app_errors//[^a-zA-Z0-9\.\:]/,}")
 		json=$( 
 			printf '%s' \
 					"{\"content\" : " \
