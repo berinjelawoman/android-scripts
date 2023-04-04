@@ -41,7 +41,7 @@ disconnected() {
 		if ! [[ " ${ip_array[*]} " == *" $line "* ]]; then
 			echo -e "$line"
 		fi
-	done < IPs.txt
+	done < "$SCRIPT_DIR/IPs.txt"
 }
 
 
