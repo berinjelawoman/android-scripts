@@ -6,7 +6,10 @@ ORANGE='\033[0;33m'
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
-if [ ! -f "env.sh" ]; then
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+
+if [ ! -f "$SCRIPT_DIR/env.sh" ]; then
 	echo -e "${RED}File env.sh doesn't exist"
 	echo -e "${RED}Please create a env.sh file with the following variables"
 	echo -e "${RED}RESET_HOUR: hour to reset the android system"
@@ -19,7 +22,7 @@ source env.sh
 
 
 connect() {
-	if [ ! -f "IPs.txt" ]; then
+	if [ ! -f "$SCRIPT_DIR/IPs.txt" ]; then
 		echo -e "${RED}File IPs.txt doesn't exist"
 		echo -e "${RED}Please create a IPs.txt file with the list of IPs to try to connect to"
 		exit 1
@@ -44,17 +47,17 @@ disconnected() {
 
 get_processes() {
 	local processes=$(adb -s $1 shell ps -A | grep -E "^shell")
-	echo "$processes" > "processes.txt"
+	echo "$processes" > "$SCRIPT_DIR/processes.txt"
 	local count=$(echo "$processes" | wc -l)
 
 	sleep 2
 	local processes2=$(adb -s $1 shell ps -A | grep -E "^shell")
-	echo "$processes2" > "processes2.txt"
+	echo "$processes2" > "$SCRIPT_DIR/processes2.txt"
 	local count2=$(echo "$processes2" | wc -l)
 
 	local res=0 && [ $count == $count2 ] && res=1
 	if [[ $count != $count2 ]]; then
-		local filename="processes_disc.txt"
+		local filename="$SCRIPT_DIR/processes_disc.txt"
 		echo "Discrepancy between process count" >> $filename
 		echo "Old process list" >> $filename
 		echo "$processes" >> $filename
@@ -63,7 +66,7 @@ get_processes() {
 	fi
 
 	if [[ $res == 0 ]]; then
-		echo -e "\"get_processes\": \"$res\""
+		echo -e "$res"
 	fi
 }
 
@@ -79,8 +82,8 @@ clear_packages() {
 
 
 check_apps() {
-	local filename="packages.txt"
-	local filename2="new_packages.txt"
+	local filename="$SCRIPT_DIR/packages.txt"
+	local filename2="$SCRIPT_DIR/new_packages.txt"
 
 	if [ ! -f "$filename" ]; then
 		echo -e "${RED}File $filename doesn't exist"
