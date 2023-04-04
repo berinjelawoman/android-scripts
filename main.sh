@@ -20,7 +20,7 @@ fi
 
 source "$SCRIPT_DIR/env.sh"
 
-echo -e "${GREEN}Loaded with RESET_HOUR=$RESET_HOUR and SEND_TO_IP=$SEND_TO_IP"
+echo -e "${GREEN}Loaded with RESET_HOUR=$RESET_HOUR and SEND_TO_IP=$SEND_TO_IP${NOCOLOR}"
 
 connect() {
 	if [ ! -f "$SCRIPT_DIR/IPs.txt" ]; then
