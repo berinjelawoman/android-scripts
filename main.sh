@@ -36,11 +36,10 @@ connect() {
 
 
 disconnected() {
-	local ip_array=( $(adb devices | grep -Eo "([0-9]{1,3}\.){3}[0-9]{1,3}") )
-
-    while IFS= read -r line; do
-		if ! [[ " ${ip_array[*]} " == *" $line "* ]]; then
-			echo -e "$line"
+	while IFS= read -r ip; do
+		local out=$( adb connect $ip )
+		if [[ "$out" == *"failed"* ]]; then
+			echo $ip 
 		fi
 	done < "$SCRIPT_DIR/IPs.txt"
 }
@@ -74,7 +73,7 @@ get_processes() {
 
 clear_packages() {
 	for package in $(adb -s $1 shell pm list packages | cut -d: -f2); do
-		if [[ "$package" != *"settings"* ]]; then
+		if [[ "$package" != *"settings"* ]] && [[ "$package" != *"webviewtemplate"* ]] && [[ "$package" != "com.blincast.rtpplayer" ]]; then
 			local res=$(adb -s $1 shell pm clear $package)
 		fi
 	done
@@ -121,10 +120,33 @@ check_apps() {
 }
 
 
-do_reset=true
-while true; do
-	connect
+function send_process_app_error() {
+	local process_errors=$(echo "${2//[^a-zA-Z0-9\.\:]/,}")
+	local app_errors=$(echo "${3//[^a-zA-Z0-9\.\:]/,}")
+	local json=$( 
+		printf '%s' \
+				"{\"content\" : " \
+					"{ \"$log_time_string\": " \
+						"{ \"ip\": \"$1\", " \
+						"  \"process_errors\":\"$process_errors\", " \
+						"  \"app_errors\":\"$app_errors\" }}}"
+		)
 
+	echo $json
+	curl --header "Content-Type: application/json" \
+		--request POST \
+		--data "$json" \
+		$SEND_TO_IP
+}
+
+
+do_reset=true
+declare -A ips_reset_status
+while IFS= read -r ip; do
+	ips_reset_status["$ip"]=false
+done < "$SCRIPT_DIR/IPs.txt"
+
+while true; do
 	hour=$( date +"%H" )
 	local_time=$( date +"%Y:%m:%d-%H:%M:%S" )
 	log_time_string="$local_time"
@@ -133,21 +155,23 @@ while true; do
 
 	dc_errors=$(disconnected)
 	for ip in ${ip_array[@]}; do
-		process_errors=$(get_processes $ip)
-		app_errors=$(check_apps $ip)
+		if ! [[ "$dc_errors" == *"$ip"* ]]; then
+			process_errors=$(get_processes $ip)
+			app_errors=$(check_apps $ip)
+			if [ -n "$process_errors" ] || [ -n "$app_errors" ]; then
+				send_process_app_error "$ip" "$process_errors" "$app_errors"
+			fi
+		fi
 	done
-
-	if [ -n "$dc_errors" ] || [ -n "$process_errors" ] || [ -n "$app_errors" ]; then
+	
+	
+	if [ -n "$dc_errors" ]; then
 		dc_errors=$(echo "${dc_errors//[^a-zA-Z0-9\.\:]/,}") # remove some weird whitespace leftover from echo
-		process_errors=$(echo "${process_errors//[^a-zA-Z0-9\.\:]/,}")
-		app_errors=$(echo "${app_errors//[^a-zA-Z0-9\.\:]/,}")
 		json=$( 
 			printf '%s' \
 					"{\"content\" : " \
 						"{ \"$log_time_string\": " \
-							"{ \"dc_errors\":\"$dc_errors\", " \
-						    "  \"process_errors\":\"$process_errors\", " \
-							"  \"app_errors\":\"$app_errors\" }}}"
+							"{ \"dc_errors\":\"$dc_errors\" }}}"
 		 )
 
 		echo $json
@@ -160,14 +184,22 @@ while true; do
 	# reset everything at RESET_HOUR
 	echo "Do reset: $do_reset"
 	if $do_reset && [ "$hour" -eq "$RESET_HOUR" ] ; then
-		echo "[ $local_time ] Reseting"
+		echo "[ $local_time ] Setting Reset"
 		do_reset=false
-		for ip in ${ip_array[@]}; do
-			clear_packages $ip
-		done
-		sleep 60
+		while IFS= read -r ip; do
+			ips_reset_status["$ip"]=true
+		done < "$SCRIPT_DIR/IPs.txt"
 	elif ! $do_reset && [ "$hour" -gt "$RESET_HOUR" ] ; then
 		echo "[ $local_time ] Set do reset as true"
 		do_reset=true
 	fi
+
+	for ip in "${!ips_reset_status[@]}"; do
+		if "${ips_reset_status[$ip]}" && ! [[ "$dc_errors" == *"$ip"* ]]; then
+			echo "Resetting $ip"
+			clear_packages $ip
+			ips_reset_status["$ip"]=false
+		fi
+	done
+		
 done
