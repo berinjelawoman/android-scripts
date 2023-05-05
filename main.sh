@@ -38,7 +38,7 @@ connect() {
 disconnected() {
 	while IFS= read -r ip; do
 		local out=$( adb connect $ip )
-		if [[ "$out" == *"failed"* ]] || [[ "$out" == *"error"* ]]; then
+		if [[ "$out" == *"failed"* ]] || [[ "$out" == *"error"* ]] || [[ "$out" == *"unable"* ]]; then
 			echo $ip 
 		fi
 	done < "$SCRIPT_DIR/IPs.txt"
