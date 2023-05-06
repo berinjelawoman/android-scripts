@@ -1,7 +1,12 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-while true; do
-    while IFS= read -r ip; do
-        (adb -s $ip shell am force-stop com.android.tv.settings)
-    done < "$SCRIPT_DIR/IPs.txt"
-done
+stop_settings() {
+    while true; do
+        adb -s $1 shell am force-stop com.android.tv.settings
+    done
+} 
+
+
+while IFS= read -r ip; do
+    stop_settings $ip &
+done < "$SCRIPT_DIR/IPs.txt"
