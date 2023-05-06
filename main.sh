@@ -79,7 +79,7 @@ clear_packages() {
 			local res=$(adb -s $1 shell pm clear $package)
 		fi
 	done
-	adb -s $1 shell reboot
+	# adb -s $1 shell reboot
 }
 
 
