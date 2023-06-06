@@ -18,6 +18,16 @@ to remove it. Now, the default launcher will be th one developed by Blincast. No
 process.
 
 ## Monitoring 
+By default, adb only allows 15 devices. To bypass that limitation, make sure you are using a recent adb build and set
+the environment variable `ADB_LOCAL_TRANSPORT_MAX_PORT` to the number of devices you will be monitoring.
+It is crucial that a recent enough adb build is used since only those support the use of the environment variable.
+Example:
+
+```
+export ADB_LOCAL_TRANSPORT_MAX_PORT=100 # monitoring 100 devices (or less)
+```
+
+
 To monitor the installed STBs run `main.sh`. It monitors the following:
  - Disconnected boxes
  - New shell processes
