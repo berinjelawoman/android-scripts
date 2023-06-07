@@ -20,7 +20,7 @@ fi
 
 source "$SCRIPT_DIR/env.sh"
 
-./kill-settings.sh &
+#"$SCRIPT_DIR/kill-settings.sh" &
 
 echo -e "${GREEN}Loaded with RESET_HOUR=$RESET_HOUR and SEND_TO_IP=$SEND_TO_IP${NOCOLOR}"
 
@@ -39,11 +39,21 @@ connect() {
 
 disconnected() {
 	while IFS= read -r ip; do
-		local out=$( adb connect $ip )
-		if [[ "$out" == *"failed"* ]] || [[ "$out" == *"error"* ]] || [[ "$out" == *"unable"* ]]; then
+		local out=$( adb -s $ip shell ls 2>&1 )
+		if [[ "$out" == *"failed"* ]] || [[ "$out" == *"error"* ]] || [[ "$out" == *"unable"* ]] || [[ "$out" == *"error: device"* ]]; then
 			echo $ip 
 		fi
 	done < "$SCRIPT_DIR/IPs.txt"
+}
+
+
+
+check_su() {
+	local IP=$1
+	res=$(adb -s $IP shell su 0 echo 1 2>&1)
+	if [[ "$res" == "1" ]]; then
+		echo "issu"
+	fi
 }
 
 
@@ -86,6 +96,7 @@ clear_packages() {
 check_apps() {
 	local filename="$SCRIPT_DIR/packages.txt"
 	local filename2="$SCRIPT_DIR/new_packages.txt"
+	local IP=$1
 
 	if [ ! -f "$filename" ]; then
 		echo -e "${RED}File $filename doesn't exist"
@@ -94,7 +105,7 @@ check_apps() {
 		exit 1
 	fi
 
-	adb -s $1 shell pm list packages | cut -d: -f2 > $filename2
+	adb -s $IP shell pm list packages | cut -d: -f2 > $filename2
 
 	_check_apps() {
 		# Loop through each package name extracted from adb
@@ -111,6 +122,12 @@ check_apps() {
 			
 			if ! $found; then
 				echo -e "$package"
+				# install package if it does exist in the apk list
+				if [ $( ls "$SCRIPT_DIR/apks/apks" | grep $package | wc -l ) -gt 0 ]; then
+					adb -s $IP install-multiple $SCRIPT_DIR/apks/apks/$package/*
+				else
+					adb -s $IP shell pm uninstall -k --user 0 $package
+				fi
 			fi
 		done < $2
 	}
@@ -155,17 +172,19 @@ while true; do
 
 	ip_array=( $(adb devices | grep -Eo "([0-9]{1,3}\.){3}[0-9]{1,3}") )
 
+	connect
 	dc_errors=$(disconnected)
+	echo "dc errors $dc_errors"
 	for ip in ${ip_array[@]}; do
+		echo "checking $ip"
 		if ! [[ "$dc_errors" == *"$ip"* ]]; then
-			process_errors=$(get_processes $ip)
+			su_errors=$(check_su $ip)
 			app_errors=$(check_apps $ip)
-			if [ -n "$process_errors" ] || [ -n "$app_errors" ]; then
-				send_process_app_error "$ip" "$process_errors" "$app_errors"
+			if [ -n "$su_errors" ] || [ -n "$app_errors" ]; then
+				send_process_app_error "$ip" "$su_errors" "$app_errors"
 			fi
 		fi
 	done
-	
 	
 	if [ -n "$dc_errors" ]; then
 		dc_errors=$(echo "${dc_errors//[^a-zA-Z0-9\.\:]/,}") # remove some weird whitespace leftover from echo
@@ -199,7 +218,7 @@ while true; do
 	for ip in "${!ips_reset_status[@]}"; do
 		if "${ips_reset_status[$ip]}" && ! [[ "$dc_errors" == *"$ip"* ]]; then
 			echo "Resetting $ip"
-			clear_packages $ip
+			clear_packages $ip &
 			ips_reset_status["$ip"]=false
 		fi
 	done

@@ -2,7 +2,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 stop_settings() {
     while true; do
-        adb -s $1 shell am force-stop com.android.tv.settings
+        adb -s $1 shell am force-stop com.android.tv.settings >/dev/null 2>/dev/null
         sleep 1
     done
 } 
