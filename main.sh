@@ -39,7 +39,7 @@ connect() {
 
 disconnected() {
 	while IFS= read -r ip; do
-		local out=$( adb -s $ip shell ls 2>&1 )
+		local out=$( adb -s $ip shell ls </dev/null 2>&1 )
 		if [[ "$out" == *"failed"* ]] || [[ "$out" == *"error"* ]] || [[ "$out" == *"unable"* ]] || [[ "$out" == *"error: device"* ]]; then
 			echo $ip 
 		fi
