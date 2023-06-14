@@ -222,5 +222,5 @@ while true; do
 			ips_reset_status["$ip"]=false
 		fi
 	done
-		
+																																																																
 done

@@ -1,0 +1,29 @@
+{
+    "content": {
+        "tv": {
+            "title": "TV",
+            "onclick": "loadTV()",
+            "img": "imgs/misc/tv.png"
+        },
+        "cellphone": {
+            "title": "Celular",
+            "onclick": "loadQRCode()",
+            "img": "imgs/misc/celphone.png"
+        },
+        "streaming": {
+            "title": "Streaming",
+            "onclick": "loadStreaming()",
+            "img": "imgs/misc/streaming.png"
+        },
+        "hotel": {
+            "title": "Hotel",
+            "onclick": "window.location.href = \"https://www.youtube.com/watch?v=gvSijrTLVB0\"",
+            "img": "imgs/misc/hotel.png"
+        },
+        "music": {
+            "title": "Música",
+            "onclick": "loadMusic()",
+            "img": "imgs/misc/radio_music.png"
+        }
+    }
+}
