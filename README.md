@@ -1,10 +1,12 @@
 # Android Scripts
 Collection of scripts to setup Android TV boxes.
 
+
 ## Initial Setup
 First, turn on developer mode on your TV Box and be sure that USB Debugging is turned on.
 Check what's your IP and connect to your STB using ADB. A pop-up asking for confirmation will appear - mark
 the option to always accept connection from this computer and confirm the connection.
+
 
 ## Installing APKs
 Add every APK you wish to install in the `apks/apks` folder then run `apks/install_apks.sh`. Be sure to add
@@ -12,10 +14,12 @@ Blincast's launcher and our other apps that must go into the specific TV box, su
 IPTVviewer.If you wish to retrieve APKs from a STB box and save it into `apks/apks` then run `apks/get_apks.sh`. Add to the `appsArray`
 variable the APKs your wish to extract.
 
+
 ## Uninstalling APKs
 Before sending the STB to hotels we must remove the default launcher and Google's Play Store. Run `apks/uninstall_launcher.sh`
 to remove it. Now, the default launcher will be th one developed by Blincast. Now, set-up the launcher to finish the installation
 process.
+
 
 ## Monitoring 
 By default, adb only allows 15 devices. To bypass that limitation, make sure you are using a recent adb build and set
@@ -35,6 +39,7 @@ To monitor the installed STBs run `main.sh`. It monitors the following:
 
 It also disables the settings app by continuously closing it and reboots the STB at a given time.
 
+
 ### Configuration Files
 To use it you must create an `IPs.txt` file with the IPs you wish to monitor. Each line must be a new IP and it must end with an empty line.
 
@@ -52,3 +57,10 @@ central server.
 
 Finally, a `env.sh` file must be created to define at which hour should the STBs be rebooted and the IP of the server to 
 send the STBs information.
+
+
+### Configure Termux
+To run `termux`commands you need to grant the `run commands in termux environment` permission to the Home Screen app.
+It is also needed to grant `termux` the `Draw Over Apps` permission.
+
+Finally, on termux, set `allow-external-apps=true` on `~/.termux/termux.properties`.
