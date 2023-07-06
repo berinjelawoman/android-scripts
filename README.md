@@ -64,3 +64,8 @@ To run `termux`commands you need to grant the `run commands in termux environmen
 It is also needed to grant `termux` the `Draw Over Apps` permission.
 
 Finally, on termux, set `allow-external-apps=true` on `~/.termux/termux.properties`.
+
+
+### Energy settings
+Turn off battery optimizations for the HomeScreen app as well as Termux to allow the apps to run forever on the background.
+This will make the HomeScreen HTTPServer work properly
