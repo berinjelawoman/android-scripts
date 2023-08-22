@@ -21,6 +21,18 @@ to remove it. Now, the default launcher will be th one developed by Blincast. No
 process.
 
 
+
+## Unlimited connection time
+Some boxes have an ADB timeout that cannot be removed through the settings app. Disable it by setting
+```
+adb shell settings put global adb_allowed_connection_time 0
+```
+You can check the setting by running
+```
+adb shell settings list global | grep adb
+```
+
+
 ## Monitoring 
 By default, adb only allows 15 devices. To bypass that limitation, make sure you are using a recent adb build and set
 the environment variable `ADB_LOCAL_TRANSPORT_MAX_PORT` to the number of devices you will be monitoring.
