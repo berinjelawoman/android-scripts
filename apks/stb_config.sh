@@ -28,4 +28,14 @@ echo Instalando apps
 echo Desinstalando play store e removendo launcher padrão
 ./uninstall_launcher.sh $IP
 
+echo Dando permissões necessárias
+adb -s $IP shell pm grant com.example.webviewtemplate com.termux.permission.RUN_COMMAND
+adb -s $IP monkey -p 'com.termux' 1
+sleep 2
+adb -s $IP input text "echo%s'allow-external-apps%s=%strue'>>%s~/.termux/termux.properties"
+adb -s $IP input keyevent KEYCODE_ENTER
+sleep 2
+adb -s $IP input text "pkg%sinstall%sandroid-tools%s-y&&adb%sdevices"
+adb -s $IP input keyevent KEYCODE_ENTER
+
 echo Tudo pronto
