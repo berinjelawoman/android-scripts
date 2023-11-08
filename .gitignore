@@ -1,3 +1,10 @@
 *.apk
 *.txt
 env.sh
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.json
+*.webp
+*.mp4
