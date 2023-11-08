@@ -2,7 +2,7 @@
     "content": {
         "tv": {
             "title": "TV",
-            "onclick": "loadTV()",
+            "onclick": "window.location.href = \"com.eltelon.zapping\"",
             "img": "imgs/misc/tv.png"
         },
         "cellphone": {
@@ -17,7 +17,7 @@
         },
         "hotel": {
             "title": "Hotel",
-            "onclick": "window.location.href = \"https://www.youtube.com/watch?v=gvSijrTLVB0\"",
+            "onclick": "window.location.href = \"https://www.youtube.com/watch?v=BkHt8tunCks\"",
             "img": "imgs/misc/hotel.png"
         },
         "music": {

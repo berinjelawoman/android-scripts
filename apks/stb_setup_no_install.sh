@@ -22,13 +22,13 @@ sleep 2
 echo Ativando conexão permanente
 adb -s $IP shell settings put global adb_allowed_connection_time 0
 
-echo Instalando apps
-./install_apks.sh $IP
-
-echo Desinstalando play store e removendo launcher padrão
-./uninstall_launcher.sh $IP
+#adb -s $IP uninstall com.example.webviewtemplate
+adb -s $IP install-multiple apks/com.example.webviewtemplate/*
+adb -s $IP install-multiple apks/com.blincast.videoplayer/*
+adb -s $IP install-multiple apks/com.termux/*
 
 echo Dando permissões necessárias
+adb -s $IP shell pm grant com.example.webviewtemplate com.termux.permission.RUN_COMMAND
 adb -s $IP shell monkey -p 'com.termux' 1
 read -p "Após setup do termux, aperte qualquer tecla para continuar"
 
@@ -39,6 +39,9 @@ adb -s $IP shell input text "pkg%sinstall%sandroid-tools%s-y\&\&adb%sdevices"
 adb -s $IP shell input keyevent KEYCODE_ENTER
 
 read -p "Após instalar, aperte qualquer tecla para continuar"
+
+
+
 adb -s $IP shell monkey -p 'com.example.webviewtemplate' 1
 sleep 5
 ../send-file.sh -i $IP -p 8080 -f ../termux-scripts/clear-packages.sh -o clear-packages.sh
@@ -46,6 +49,5 @@ sleep 5
 ../send-file.sh -i $IP -p 8080 -f ../termux-scripts/kill-settings.sh -o kill-settings.sh
 curl -X POST -H "Content-Type: application/json" -d @fix-remote.json http://$IP:8080/create-file
 adb -s $IP push main.mp4 /sdcard/
-adb -s $IP shell pm grant com.example.webviewtemplate com.termux.permission.RUN_COMMAND
 
 echo Tudo pronto

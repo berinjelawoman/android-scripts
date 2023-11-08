@@ -1,9 +1,5 @@
 #!/bin/bash
 
-if [ $# -lt 2 ]; then
-	echo "uso: ./setup.sh ip_local ip_fixo_desejado"; echo "ex: ./setup.sh 192.168.70.34 10.124.224.40"
-	exit 1
-fi
 
 IP=$1
 echo $IP
@@ -17,11 +13,8 @@ do
 	sleep 1
 done
 echo "confirmacao recebida... continuando..."
-sleep 2
 
-./install_apks.sh $IP
-sleep 1
+adb -s $IP install apks/com.example.webviewtemplate/com.example.webviewtemplate.apk
+
 ./uninstall_launcher.sh $IP
-sleep 10
-../automation/automation.sh
 echo "tudo pronto"

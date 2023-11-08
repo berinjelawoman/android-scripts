@@ -13,6 +13,12 @@ do
     esac
 done
 
+if [[ $type != "background" ]] && [[ $type != "logo" ]]; then
+    echo -e "\033[0;31mExpected type [background|logo]. Got $type instead"
+    exit 1
+fi
+
 
 (echo -n "{\"extension\": \"$extension\", \"type\": \"$type\", \"image\": \""; base64 $filepath; echo '"}') \
-    | curl -k -X POST -H "Content-Type: application/json" -d @- https://$ip:$port/b64-image
+        | curl -k -X POST -H "Content-Type: application/json" -d @- https://$ip:$port/set-$type
+
