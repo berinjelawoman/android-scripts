@@ -13,4 +13,4 @@ do
 done
 
 
-cat $filepath | curl -X POST -H "Content-Type: application/json" -d @- http://$ip:$port/config
+cat $filepath | curl -k -X POST -H "Content-Type: application/json" -d @- https://$ip:$port/config

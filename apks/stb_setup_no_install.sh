@@ -27,20 +27,7 @@ adb -s $IP install-multiple apks/com.example.webviewtemplate/*
 adb -s $IP install-multiple apks/com.blincast.videoplayer/*
 adb -s $IP install-multiple apks/com.termux/*
 
-echo Dando permissões necessárias
-adb -s $IP shell pm grant com.example.webviewtemplate com.termux.permission.RUN_COMMAND
-adb -s $IP shell monkey -p 'com.termux' 1
-read -p "Após setup do termux, aperte qualquer tecla para continuar"
-
-adb -s $IP shell input text "echo%s'allow-external-apps%s=%strue'\>\>%s~/.termux/termux.properties"
-adb -s $IP shell input keyevent KEYCODE_ENTER
-sleep 2
-adb -s $IP shell input text "pkg%sinstall%sandroid-tools%s-y\&\&adb%sdevices"
-adb -s $IP shell input keyevent KEYCODE_ENTER
-
-read -p "Após instalar, aperte qualquer tecla para continuar"
-
-
+./automate-termux $IP
 
 adb -s $IP shell monkey -p 'com.example.webviewtemplate' 1
 sleep 5

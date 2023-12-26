@@ -28,24 +28,20 @@ echo Instalando apps
 echo Desinstalando play store e removendo launcher padrão
 ./uninstall_launcher.sh $IP
 
-echo Dando permissões necessárias
-adb -s $IP shell monkey -p 'com.termux' 1
-read -p "Após setup do termux, aperte qualquer tecla para continuar"
+echo Configurando termux
 
-adb -s $IP shell input text "echo%s'allow-external-apps%s=%strue'\>\>%s~/.termux/termux.properties"
-adb -s $IP shell input keyevent KEYCODE_ENTER
-sleep 2
-adb -s $IP shell input text "pkg%sinstall%sandroid-tools%s-y\&\&adb%sdevices"
-adb -s $IP shell input keyevent KEYCODE_ENTER
+./automate-termux.sh $IP
 
-read -p "Após instalar, aperte qualquer tecla para continuar"
 adb -s $IP shell monkey -p 'com.example.webviewtemplate' 1
 sleep 5
 ../send-file.sh -i $IP -p 8080 -f ../termux-scripts/clear-packages.sh -o clear-packages.sh
 ../send-file.sh -i $IP -p 8080 -f ../termux-scripts/get-curr-app.sh -o get-curr-app.sh
 ../send-file.sh -i $IP -p 8080 -f ../termux-scripts/kill-settings.sh -o kill-settings.sh
-curl -X POST -H "Content-Type: application/json" -d @fix-remote.json http://$IP:8080/create-file
+curl -k -X POST -H "Content-Type: application/json" -d @fix-remote.json https://$IP:8080/create-file
 adb -s $IP push main.mp4 /sdcard/
 adb -s $IP shell pm grant com.example.webviewtemplate com.termux.permission.RUN_COMMAND
-
+adb -s $IP shell appops set com.example.webviewtemplate GET_USAGE_STATS allow
+adb -s $IP shell input keyevent KEYCODE_BACK
+adb -s $IP shell pm grant com.example.webviewtemplate android.permission.CHANGE_CONFIGURATION
+adb -s $IP shell pm grant com.example.webviewtemplate android.permission.SYSTEM_ALERT_WINDOW
 echo Tudo pronto
